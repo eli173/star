@@ -5,19 +5,30 @@
     <title>*Star</title>
   </head>
   <body>
-    <form action="/login" method="post">
-      <div>
-	<label for="username">Username:</label>
-	<input type="text" id="username" />
-      </div>
-      <div>
-	<label for="password">Password:</label>
-	<input type="password" id="password" />
-      </div>
-      <div class="button">
-	<button type="submit">Log in</button>
-      </div>
-      
+    {% if session['logged_in']==False %}
+    <div id="login">
+      login
+      <form action="/login" method="post">
+	{% with messages = get_flashed_messages(category_filter=['login error']) %}
+	  Username:
+	  <input type="text" name="username" />
+	  Password:
+	  <input type="password" name="password" />
+	  {% if len(messages)!=0 %}
+	  {{ messages[0] }}
+	  {% endif %}
+	  {% endwith %}
+	<div class="buttons">
+	  <button type="submit" name="login">Log in</button>
+	  <button type="submit" name="register">Register</button>
+	</div>
+	
+      </form>
+    </div>
+    {% else %}
+    <form action="/logout">
+      <button type="submit" name="logout">Log out</button>
     </form>
+    {% endif %}
   </body>
 </html>
