@@ -55,6 +55,9 @@ def login():
         if request.form.get('login')!=None:
             if request.form.get('username')==None:
                 return redirect(url_for("index"))
+            if not user_exists:
+                flash(u'No account with this username exists','login error')
+                return redirect(url_for("index"))
             pw_sql = g.db.execute('select pw_hash from users where username=?',
                                   (request.form.get('username'),))
             pw_hash = pw_sql.fetchall()[0][0]

@@ -14,9 +14,9 @@
 	  <input type="text" name="username" />
 	  Password:
 	  <input type="password" name="password" />
-	  {% if len(messages)!=0 %}
-	  {{ messages[0] }}
-	  {% endif %}
+	  {% for err in messages %}
+	  {{ err }}
+	  {% endfor %}
 	  {% endwith %}
 	<div class="buttons">
 	  <button type="submit" name="login">Log in</button>
