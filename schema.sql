@@ -10,3 +10,13 @@ create table users (
        wins integer,
        losses integer
        );
+
+create table games (
+       id integer primary key autoincrement,
+       foreign key(player1) references users(id),
+       foreign key(player2) references users(id),
+       -- encode board state as a string
+       board text
+       );
+       
+       
