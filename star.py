@@ -38,12 +38,41 @@ def teardown_request(exception):
     
 @app.route('/games')
 def games():
-    pass
+    if 'logged_in' not in session:
+        return redirect(url_for("index"))
+    uname = session['username']
+    uid = g.db.execute('select id from users where username=?',(uname,))
+    games = g.db.execute('select * from games where player1=? or player2=?',
+                            (uname,uname)).fetchall()
+    glist = []
+    for game in games:
+        if game['player1'] == uname:
+            glist.append((game['player2'],game['whose_turn']==0))
+        else:
+            glist.append((game['player1'],game['whose_turn']!=0))
+    return render_template('games.html')
+    
+@app.route('/newgame', methods=['POST'])
+def newgame():
+    uid = g.db.execute('select id from users where username=?',(g.username,))
+    waiting = g.db.execute('select * from waiting').fetchall()
+    if len(waiting)!=0:
+        # make game with person
+        g.db.execute('delete from waiting where id=?',(waiting[0]['id'],))
+        g.db.execute('insert into games (player1, player2) values (?,?)',
+                     (uid,waiting[0]['id']))
+        return redirect(url_for("play"))
+    g.db.execute('insert into waiting (player) values (?)',(uid,))
+    return redirect(url_for("games")) # how to tell if on waitlist?
+
+@app.route('/play')
+def play():
+    app.logger.debug("at play")
+
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in',None)
-    app.logger.debug('logged out')
     return redirect(url_for("index"))
 
 @app.route('/login', methods=['POST'])
@@ -65,6 +94,7 @@ def login():
             if bcrypt.hashpw(pw_plain, pw_hash) == pw_hash:
                 #app.logger.debug('success!')
                 session['logged_in'] = True
+                session['username'] = request.form.get('username')
             else:
                 flash(u'Wrong Password','login error')
                 return redirect(url_for("index"))
@@ -82,7 +112,6 @@ def login():
 
 @app.route('/')
 def index():
-    app.logger.debug('logged_in' in session)
     return render_template('index.html')
 
 
