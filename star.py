@@ -82,6 +82,7 @@ def login():
 
 @app.route('/')
 def index():
+    app.logger.debug('logged_in' in session)
     return render_template('index.html')
 
 
