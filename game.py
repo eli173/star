@@ -46,11 +46,11 @@ class Game:
         board = Board()
         ls = []
         if player==None:
-            ls = self.open_cells
+            ls = list(self.open_cells)
         elif player==self.p1:
-            ls = self.p1_cells
+            ls = list(self.p1_cells)
         else: # p2
-            ls = self.p2_cells
+            ls = list(self.p2_cells)
         regions = []
         while len(ls)!=0:
             checked = []
@@ -66,6 +66,7 @@ class Game:
                 candidates.remove(c)
                 checked.append(c)
                 regions.append(reg)
+        return regions
             
     def calc_score(self):
         ls = ['*','s','t','a','r']
