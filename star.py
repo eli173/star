@@ -52,23 +52,32 @@ def games():
             glist.append((game['player1'],game['whose_turn']!=0))
     return render_template('games.html')
     
-@app.route('/newgame', methods=['POST'])
+@app.route('/newgame')
 def newgame():
-    uid = g.db.execute('select id from users where username=?',(g.username,))
+    if 'logged_in' not in session:
+        return redirect(url_for("index"))
+    app.logger.debug(session['username'])
+    uid = g.db.execute('select id from users where username=?',
+                       (session['username'],)).fetchall()[0][0]
     waiting = g.db.execute('select * from waiting').fetchall()
+    app.logger.debug(waiting)
     if len(waiting)!=0:
-        # make game with person
-        g.db.execute('delete from waiting where id=?',(waiting[0]['id'],))
+        opp_id = waiting[0][1]
+        app.logger.debug(waiting)
+        g.db.execute('delete from waiting where id=?',(waiting[0][0],))
         g.db.execute('insert into games (player1, player2) values (?,?)',
-                     (uid,waiting[0]['id']))
+                     (uid,opp_id))
+        g.db.commit()
         return redirect(url_for("play"))
+    app.logger.debug('len is 0')
     g.db.execute('insert into waiting (player) values (?)',(uid,))
+    g.db.commit()
     return redirect(url_for("games")) # how to tell if on waitlist?
 
 @app.route('/play')
 def play():
     app.logger.debug("at play")
-
+    return redirect(url_for("index"))
 
 @app.route('/logout')
 def logout():

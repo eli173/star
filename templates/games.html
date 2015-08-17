@@ -5,7 +5,20 @@
     <title>Games</title>
   </head>
   <body>
-    
-    
+    {% for g in glist %}
+    <div class="game">
+      Against <div class="user">{{ g[0]|e }}</div>
+      {% if g[1] %}
+      Your turn
+      {% else %}
+      Opponent's turn
+      {% endif %}
+    </div>
+    {% else %}
+    No games right now!
+    {% endfor %}
+    <form action="/newgame">
+      <input type="submit" value="New Game">
+    </form>
   </body>
 </html>
