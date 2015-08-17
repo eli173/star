@@ -1,4 +1,4 @@
-
+#80#############################################################################
 
 class Game:
     def __init__(self,p1,p2):
@@ -36,38 +36,13 @@ class Game:
             self.p2_cells.append(cell)
     def is_over(self):
         return len(self.open_cells)==0
-    def __get_regions(self):
+    def get_regions(self):
+        b = Board()
         regions = {}
-        regions[self.p1] = self.__get_p_regions(self.p1)
-        regions[self.p2] = self.__get_p_regions(self.p2)
-        regions[None] = self.__get_p_regions()
+        regions[self.p1] = b.get_regions(self.p1_cells)
+        regions[self.p2] = b.get_regions(self.p2_cells)
+        regions[None] = b.get_regions(self.open_cells)
         return regions
-    def __get_p_regions(self,player=None):
-        board = Board()
-        ls = []
-        if player==None:
-            ls = list(self.open_cells)
-        elif player==self.p1:
-            ls = list(self.p1_cells)
-        else: # p2
-            ls = list(self.p2_cells)
-        regions = []
-        while len(ls)!=0:
-            checked = []
-            candidates = [ls.pop(0)]
-            for c in candidates:
-                reg = []
-                for n in board.get_edges(c):
-                    if n not in checked and n not in candidates:
-                        if n in ls:
-                            candidates.append(n)
-                            regions.append(n)
-                            ls.remove(n)
-                candidates.remove(c)
-                checked.append(c)
-                regions.append(reg)
-        return regions
-            
     def calc_score(self):
         ls = ['*','s','t','a','r']
         peris = cell_groups[3]
@@ -229,3 +204,21 @@ class Graph:
             for el in self.edge_lists:
                 if el.vertex == vtx2:
                     el.add_edge(vtx1)
+    def get_regions(self,vtx_ls):
+        vls = list(vtx_ls)
+        regions = []
+        while(len(vls)!=0):
+            not_checked = [vls.pop(0)]
+            this_region = [not_checked[0]]
+            while(len(not_checked)!=0):
+                curr = not_checked.pop(0)
+                nbrs = self.get_edges(curr)
+                for nbr in nbrs:
+                    if nbr in vls:
+                        vls.remove(nbr)
+                        if nbr not in not_checked:
+                            not_checked.append(nbr)
+                        if nbr not in this_region:
+                            this_region.append(nbr)
+            regions.append(this_region)
+        return regions
