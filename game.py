@@ -48,9 +48,29 @@ class Game:
         peris = cell_groups[3]
         quarks = ['*40','s40','t40','a40','r40']
         peris.sort(key=lambda p: str(ls.index(p[0]))+p[1:])
-        
-        
-        
+        regions = self.get_regions()
+    def peri_owner(self,peri):
+        regions = self.get_regions()
+        peri_placer = None
+        peris = cell_groups[3]
+        if peri in self.p1_cells:
+            peri_placer = self.p1
+        elif peri in self.p2_cells:
+            peri_placer = self.p2
+        if peri_placer not None:
+            for region in regions[peri_placer]:
+                if peri in region:
+                    for cell in region:
+                        if cell in peris:
+                            return peri_placer
+        p1_pair = []
+        p1_first_right = None
+        curr_peri = peri
+        while p1_first_right == None:
+            next_peri = peris[(peris.index(curr_peri)+1)%len(peris)]
+            if next_peri in
+
+
 
 
             
