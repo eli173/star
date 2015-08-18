@@ -63,18 +63,22 @@ class Game:
         stars[self.p2] = list(regions[self.p2])
         for region in stars[self.p2]:
             list(filter(region,lambda p: p in peris))
-        for i in range(len(stars[self.p1])):
-            if len(stars[self.p1][i])<2:
-                stars[self.p1].pop(i)
-        for i in range(len(stars[self.p2])):
-            if len(stars[self.p2][i])<2:
-                stars[self.p2].pop(i)
-        for player in (self.p1,self.p2):
+        def in_star(peri):
+            # returns player or none...?
             for star in stars[self.p1]:
-                for peri in star:
-                    score[self.p1]['peris']+=1
-                    unscored_peris.reomve(peri)
-        # now for peris not in a star...
+                if peri in star:
+                    return self.p1
+            for star in stars[self.p2]:
+                if peri in star:
+                    return self.p2
+            return None
+        first_check = False
+        while not first_check:
+            if in_star(peris[0]) != None:
+                first_check = True
+        curr_player = in_star(peris[0])
+        while len(peris) > 0:
+            curr_peri = peris.pop(0)
         
 
             
