@@ -7,7 +7,7 @@ class Game:
         self.open_cells = []
         for cg in cell_groups:
             for c in cg:
-                self.open_cells.append(c)
+                self.open_cells.append(list(c))
         self.p1_cells = []
         self.p2_cells = []
     def import_string(self,bstr):
@@ -16,7 +16,7 @@ class Game:
         cells = []
         ls = ['*','s','t','a','r']
         for cg in cell_groups:
-            cells+=cg
+            cells+=list(cg)
         cells.sort(key=lambda c: str(ls.index(c[0]))+c[1:])
         self.p1_cells = []
         self.p2_cells = []
@@ -45,33 +45,37 @@ class Game:
         return regions
     def calc_score(self):
         ls = ['*','s','t','a','r']
-        peris = cell_groups[3]
+        score = {}
+        score[self.p1] = {}
+        score[self.p2] = {}
+        stars = {}
+        # score[player][points from what (i.e. peris, quarks, stars)]
+        ls = ['*','s','t','a','r']
+        peris = list(cell_groups[3])
+        peris.sort(key=lambda p: str(ls.index(p[0]))+p[1:])
+        unscored_peris = list(peris)
         quarks = ['*40','s40','t40','a40','r40']
         peris.sort(key=lambda p: str(ls.index(p[0]))+p[1:])
         regions = self.get_regions()
-    def peri_owner(self,peri):
-        regions = self.get_regions()
-        peri_placer = None
-        peris = cell_groups[3]
-        if peri in self.p1_cells:
-            peri_placer = self.p1
-        elif peri in self.p2_cells:
-            peri_placer = self.p2
-        if peri_placer not None:
-            for region in regions[peri_placer]:
-                if peri in region:
-                    for cell in region:
-                        if cell in peris:
-                            return peri_placer
-        p1_pair = []
-        p1_first_right = None
-        curr_peri = peri
-        while p1_first_right == None:
-            next_peri = peris[(peris.index(curr_peri)+1)%len(peris)]
-            if next_peri in
-
-
-
+        stars[self.p1] = list(regions[self.p1])
+        for region in stars[self.p1]:
+            list(filter(region,lambda p: p in peris))
+        stars[self.p2] = list(regions[self.p2])
+        for region in stars[self.p2]:
+            list(filter(region,lambda p: p in peris))
+        for i in range(len(stars[self.p1])):
+            if len(stars[self.p1][i])<2:
+                stars[self.p1].pop(i)
+        for i in range(len(stars[self.p2])):
+            if len(stars[self.p2][i])<2:
+                stars[self.p2].pop(i)
+        for player in (self.p1,self.p2):
+            for star in stars[self.p1]:
+                for peri in star:
+                    score[self.p1]['peris']+=1
+                    unscored_peris.reomve(peri)
+        # now for peris not in a star...
+        
 
             
 cell_groups = [['s10','t10','a10','r10','*10'],
@@ -92,7 +96,7 @@ cell_groups = [['s10','t10','a10','r10','*10'],
 class Board(Graph):
     def __init__(self,big=False):
         super().__init__()
-        self.peris = cell_groups[3]
+        self.peris = list(cell_groups[3])
         self.quarks = ['s40','t40','a40','r40','*40']
         ls = ['*','s','t','a','r']
         next_one = lambda c: ls[(ls.index(c)+1) % 5]
