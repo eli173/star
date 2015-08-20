@@ -59,45 +59,48 @@ class Game:
         regions[self.p2] = b.get_regions(self.p2_cells)
         regions[None] = b.get_regions(self.open_cells)
         return regions
-    def calc_score(self): # this is too long...
-        ls = ['*','s','t','a','r']
-        score = {}
-        score[self.p1] = {}
-        score[self.p2] = {}
-        stars = {}
-        # score[player][points from what (i.e. peris, quarks, stars)]
-        ls = ['*','s','t','a','r']
-        peris = list(cell_groups[3])
-        peris.sort(key=lambda p: str(ls.index(p[0]))+p[1:])
-        unscored_peris = list(peris)
-        quarks = ['*40','s40','t40','a40','r40']
-        peris.sort(key=lambda p: str(ls.index(p[0]))+p[1:])
+    def get_stars(self):
         regions = self.get_regions()
-        stars[self.p1] = list(regions[self.p1])
-        for region in stars[self.p1]:
-            list(filter(region,lambda p: p in peris))
-        stars[self.p2] = list(regions[self.p2])
-        for region in stars[self.p2]:
-            list(filter(region,lambda p: p in peris))
-        def in_star(peri):
-            # returns player or none...?
-            for star in stars[self.p1]:
-                if peri in star:
-                    return self.p1
-            for star in stars[self.p2]:
-                if peri in star:
-                    return self.p2
+        stars = {self.p1:[], self.p2:[]}
+        for region in regions[self.p1]+regions[self.p2]:
+            if (len(list(filter(lambda c: c in peris,region)))) >=2:
+                if region in regions[self.p1]:
+                    stars[self.p1].append(region)
+                else:
+                    stars[self.p2].append(region)
+        return stars
+    def calc_score(self):
+        if not self.is_over():
             return None
-        def between(peri_a,peri_b):
-            # returns list of peris between p1 and p2 (nonincl)
-            paix = peris.index(peri_a)
-            pbix = peris.index(peri_b)
-            if paix<=pbix:
-                return peris[paix+1:pbix]
-            else:
-                return peris[paix+1:]+peris[:pbix]
-
-        
+        score = {self.p1:0,self.p2:0}
+        stars = self.get_stars()
+        star_peris = {self.p1:[],self.p2:[]}
+        for peri in list(cell_groups[3]):
+            pp = self.p1 if peri in self.p1_cells else self.p2
+            op = self.p1 if pp == self.p2 else self.p2
+            in_star = False
+            for star in stars[pp]:
+                if peri in star:
+                    in_star = True
+            score[pp] += 1 if in_star else 0
+            score[op] += 0 if in_star else 1
+            # is this really it?
+        # so far have calculated all peri scores
+        p1_qks = 0
+        for quark in ['*40','s40','t40','a40','r40']:
+            if quark in self.p1_cells:
+                p1_qks += 1
+        score[self.p1 if p1_qks>2 else self.p2] += 1
+        reward = -2*(len(stars[self.p1])-len(stars[self.p2]))
+        score[self.p1] += reward
+        score[self.p2] += reward
+        return score
+    def get_winner(self):
+        score = self.calc_score()
+        if score[self.p1]>score[self.p2]:
+            return self.p1
+        else:
+            return self.p2
             
             
 cell_groups = [['s10','t10','a10','r10','*10'],
