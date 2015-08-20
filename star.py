@@ -8,7 +8,7 @@ from flask import Flask, request, session, g, redirect, \
 from contextlib import closing
 import bcrypt
 
-
+import game
 
 
 #cfg
@@ -65,8 +65,8 @@ def newgame():
         opp_id = waiting[0][1]
         app.logger.debug(waiting)
         g.db.execute('delete from waiting where id=?',(waiting[0][0],))
-        g.db.execute('insert into games (player1, player2) values (?,?)',
-                     (uid,opp_id))
+        g.db.execute('insert into games (player1, player2, whose_turn) values (?,?,?)',
+                     (uid,opp_id,0))
         g.db.commit()
         return redirect(url_for("play"))
     app.logger.debug('len is 0')
@@ -74,10 +74,24 @@ def newgame():
     g.db.commit()
     return redirect(url_for("games")) # how to tell if on waitlist?
 
-@app.route('/play')
-def play():
-    app.logger.debug("at play")
-    return redirect(url_for("index"))
+@app.route('/play/<int:game_id>')
+def play(game_id):
+    g.game_id = game_id
+    db_gm = g.db.execute('select * from games where id=?',(game_id,)).fetchall()
+    the_gm = game.Game(db_gm[0][3],db_gm[0][4],db_gm[0][0])
+    the_gm.import_string(db_gm[0][1])
+    g.color_table = {}
+    cell_list = []
+    for cg in game.cell_groups:
+        cell_list += cg
+    for cell in cell_list:
+        curr_color = "ffff00"
+        if cell in the_gm.p1_cells:
+            curr_color = "ff0000"
+        elif cell in the_gm.p2_cells:
+            curr_color = "0000ff"
+        g.color_table[cell] = curr_color
+    return render_template('play.html')
 
 @app.route('/logout')
 def logout():

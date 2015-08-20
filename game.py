@@ -1,9 +1,10 @@
 #80#############################################################################
 
 class Game:
-    def __init__(self,p1,p2):
+    def __init__(self,p1,p2,g_id):
         self.p1 = p1
         self.p2 = p2
+        self.g_id = g_id
         self.open_cells = []
         for cg in cell_groups:
             for c in cg:
