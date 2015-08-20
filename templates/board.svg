@@ -1,0 +1,18 @@
+
+<svg version="1.1"
+     baseProfile = "full"
+     width = "400"
+     height = "400"
+     xmlns = "http://www.w3.org/2000/svg">
+  <!-- center at 200,200 -->
+  <!--
+      pentagon(upright): if at origin and dist to vert r,
+      then
+      (0,r),()
+  -->
+  <!-- center star -->
+  <polygon points="200 210,197 204,191 203,195 198,194 192,200 195,206 192,205 198,209 203,203 204"
+	    stroke="black" fill="yellow" stroke-width="3"/>
+
+
+</svg>

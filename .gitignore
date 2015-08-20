@@ -4,3 +4,4 @@ __pycache__/
 /templates/games.html~
 /tests.py~
 /calc_score.py~
+/templates/board.svg~
