@@ -28,6 +28,22 @@ class Game:
                 self.p1_cells.append(cells[i])
             else:
                 self.p2_cells.append(cells[i])
+    def export_string(self):
+        num_ls = []
+        cells = []
+        ls = ['*','s','t','a','r']
+        for cg in cell_groups:
+            cells+=list(cg)
+        cells.sort(key=lambda c: str(ls.index(c[0]))+c[1:])
+        for i in range(50):
+            if cells[i] in self.open_cells:
+                num_ls.append('0')
+            elif cells[i] in self.p1_cells:
+                num_ls.append('1')
+            else: # p2
+                num_ls.append('2')
+        return ''.join(num_ls)
+            
     def move(self,player,cell):
         self.open_cells.remove(cell)
         if player==self.p1:
@@ -43,7 +59,7 @@ class Game:
         regions[self.p2] = b.get_regions(self.p2_cells)
         regions[None] = b.get_regions(self.open_cells)
         return regions
-    def calc_score(self):
+    def calc_score(self): # this is too long...
         ls = ['*','s','t','a','r']
         score = {}
         score[self.p1] = {}
@@ -72,15 +88,17 @@ class Game:
                 if peri in star:
                     return self.p2
             return None
-        first_check = False
-        while not first_check:
-            if in_star(peris[0]) != None:
-                first_check = True
-        curr_player = in_star(peris[0])
-        while len(peris) > 0:
-            curr_peri = peris.pop(0)
-        
+        def between(peri_a,peri_b):
+            # returns list of peris between p1 and p2 (nonincl)
+            paix = peris.index(peri_a)
+            pbix = peris.index(peri_b)
+            if paix<=pbix:
+                return peris[paix+1:pbix]
+            else:
+                return peris[paix+1:]+peris[:pbix]
 
+        
+            
             
 cell_groups = [['s10','t10','a10','r10','*10'],
                ['s20','t20','a20','r20','*20',
@@ -97,65 +115,6 @@ cell_groups = [['s10','t10','a10','r10','*10'],
     
 
 
-class Board(Graph):
-    def __init__(self,big=False):
-        super().__init__()
-        self.peris = list(cell_groups[3])
-        self.quarks = ['s40','t40','a40','r40','*40']
-        ls = ['*','s','t','a','r']
-        next_one = lambda c: ls[(ls.index(c)+1) % 5]
-        prev_one = lambda c: ls[(ls.index(c)-1) % 5]
-        next_chr = lambda c: chr(ord(c)+1)
-        prev_chr = lambda c: chr(ord(c)-1)
-        for cell in cell_groups[0]:
-            self.add_vertex(cell)
-        for cell in cell_groups[0]:
-            for other in cell_groups[0]:
-                self.add_edge(cell,other)
-        # first layer done
-        for cell in cell_groups[1]:
-            self.add_vertex(cell)
-        for cell in self.get_verts():
-            for other in self.get_verts():
-                if cell[0]==other[0]:
-                    self.add_edge(cell,other)
-        for cell in cell_groups[1]:
-            if cell[2]=='1':
-                self.add_edge(cell,next_one(cell[0])+'20')
-                self.add_edge(cell,next_one(cell[0])+'10')
-        # second layer done
-        for cell in cell_groups[2]:
-            self.add_vertex(cell)
-        for cell in cell_groups[2]:
-            if cell[2]=='0':
-                self.add_edge(cell,prev_one(cell[0])+'32')
-                self.add_edge(cell,cell[0]+'31')
-                self.add_edge(cell,cell[0]+'20')
-            elif cell[2]=='1':
-                self.add_edge(cell,cell[0]+'32')
-                self.add_edge(cell,cell[0]+'20')
-                self.add_edge(cell,cell[0]+'21')
-            else:
-                self.add_edge(cell,cell[0]+'21')
-                self.add_edge(cell,next_one(cell[0])+'20')
-        # third layer done (?)
-        for cell in cell_groups[3]:
-            self.add_vertex(cell)
-        for cell in cell_groups[3]:
-            if cell[2]=='0':
-                self.add_edge(cell,prev_one(cell[0])+'43')
-                self.add_edge(cell,cell[0]+'41')
-                self.add_edge(cell,cell[0]+'30')
-            elif cell[2]=='3':
-                self.add_edge(cell,cell[0]+'42')
-                self.add_edge(cell,next_one(cell[0])+'30')
-                self.add_edge(cell,cell[0]+'32')
-            else:
-                self.add_edge(cell,cell[0:2]+next_chr(cell[2]))
-                self.add_edge(cell,cell[0]+'3'+cell[2])
-                self.add_edge(cell,cell[0]+'3'+prev_chr(cell[2]))
-        # done with small board
-        # this actually probably works in general... for larger boards
                 
 
 class EdgeList:
@@ -250,3 +209,64 @@ class Graph:
                             this_region.append(nbr)
             regions.append(this_region)
         return regions
+
+
+class Board(Graph):
+    def __init__(self,big=False):
+        super().__init__()
+        self.peris = list(cell_groups[3])
+        self.quarks = ['s40','t40','a40','r40','*40']
+        ls = ['*','s','t','a','r']
+        next_one = lambda c: ls[(ls.index(c)+1) % 5]
+        prev_one = lambda c: ls[(ls.index(c)-1) % 5]
+        next_chr = lambda c: chr(ord(c)+1)
+        prev_chr = lambda c: chr(ord(c)-1)
+        for cell in cell_groups[0]:
+            self.add_vertex(cell)
+        for cell in cell_groups[0]:
+            for other in cell_groups[0]:
+                self.add_edge(cell,other)
+        # first layer done
+        for cell in cell_groups[1]:
+            self.add_vertex(cell)
+        for cell in self.get_verts():
+            for other in self.get_verts():
+                if cell[0]==other[0]:
+                    self.add_edge(cell,other)
+        for cell in cell_groups[1]:
+            if cell[2]=='1':
+                self.add_edge(cell,next_one(cell[0])+'20')
+                self.add_edge(cell,next_one(cell[0])+'10')
+        # second layer done
+        for cell in cell_groups[2]:
+            self.add_vertex(cell)
+        for cell in cell_groups[2]:
+            if cell[2]=='0':
+                self.add_edge(cell,prev_one(cell[0])+'32')
+                self.add_edge(cell,cell[0]+'31')
+                self.add_edge(cell,cell[0]+'20')
+            elif cell[2]=='1':
+                self.add_edge(cell,cell[0]+'32')
+                self.add_edge(cell,cell[0]+'20')
+                self.add_edge(cell,cell[0]+'21')
+            else:
+                self.add_edge(cell,cell[0]+'21')
+                self.add_edge(cell,next_one(cell[0])+'20')
+        # third layer done (?)
+        for cell in cell_groups[3]:
+            self.add_vertex(cell)
+        for cell in cell_groups[3]:
+            if cell[2]=='0':
+                self.add_edge(cell,prev_one(cell[0])+'43')
+                self.add_edge(cell,cell[0]+'41')
+                self.add_edge(cell,cell[0]+'30')
+            elif cell[2]=='3':
+                self.add_edge(cell,cell[0]+'42')
+                self.add_edge(cell,next_one(cell[0])+'30')
+                self.add_edge(cell,cell[0]+'32')
+            else:
+                self.add_edge(cell,cell[0:2]+next_chr(cell[2]))
+                self.add_edge(cell,cell[0]+'3'+cell[2])
+                self.add_edge(cell,cell[0]+'3'+prev_chr(cell[2]))
+        # done with small board
+        # this actually probably works in general... for larger boards

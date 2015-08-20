@@ -2,3 +2,5 @@
 __pycache__/
 /game.py~
 /templates/games.html~
+/tests.py~
+/calc_score.py~
