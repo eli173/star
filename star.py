@@ -60,16 +60,18 @@ def newgame():
     uid = g.db.execute('select id from users where username=?',
                        (session['username'],)).fetchall()[0][0]
     waiting = g.db.execute('select * from waiting').fetchall()
-    app.logger.debug(waiting)
-    if len(waiting)!=0:
-        opp_id = waiting[0][1]
-        app.logger.debug(waiting)
-        g.db.execute('delete from waiting where id=?',(waiting[0][0],))
-        g.db.execute('insert into games (player1, player2, whose_turn) values (?,?,?)',
-                     (uid,opp_id,0))
-        g.db.commit()
-        return redirect(url_for("play"))
-    app.logger.debug('len is 0')
+    for game in waiting:
+        if uid==game[1]:
+            return redirect(url_for("games"))
+    for game in waiting:
+        opp_id = game[1]
+        if opp_id!=uid:
+            g.db.execute('delete from waiting where id=?',
+                         (game[0],))
+            g.db.execute('insert into games (player1, player2) values (?,?)',(uid,opp_id))
+            g.db.commit()
+            game_id = g.db.execute('select id from games where player1=? and player2=?',(uid,opp_id)).fetchall()
+            return redirect(url_for("play",game_id=game_id[0][0]))
     g.db.execute('insert into waiting (player) values (?)',(uid,))
     g.db.commit()
     return redirect(url_for("games")) # how to tell if on waitlist?
