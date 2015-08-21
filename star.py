@@ -123,6 +123,17 @@ def submit(game_id, move):
         return redirect(url_for("play",game_id=game_id))
     # do it?
     the_gm.move(uid,move)
+    app.logger.debug(the_gm.is_over())
+    if the_gm.is_over():
+        winner = the_gm.get_winner()
+        loser = the_gm.p1 if winner==the_gm.p2 else the_gm.p2
+        g.db.execute('delete from games where id=?',
+                     (the_gm.g_id,))
+        g.db.execute('update users set wins=wins+1 where id=?',
+                     (winner,))
+        g.db.execute('update users set losses=losses+1 where id=?',
+                     (loser,))
+        return redirect(url_for("games"))
     estr = the_gm.export_string()
     app.logger.debug(game_id)
     g.db.execute('update games set board=? where id=?',(estr,game_id))
