@@ -6,3 +6,4 @@ __pycache__/
 /calc_score.py~
 /templates/board.svg~
 /templates/play.html~
+db.db

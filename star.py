@@ -78,8 +78,11 @@ def newgame():
 def play(game_id):
     g.game_id = game_id
     db_gm = g.db.execute('select * from games where id=?',(game_id,)).fetchall()
+    if db_gm == []:
+        redirect(url_for("games"))
     the_gm = game.Game(db_gm[0][3],db_gm[0][4],db_gm[0][0])
     the_gm.import_string(db_gm[0][1])
+    app.logger.debug(db_gm[0][1])
     g.color_table = {}
     cell_list = []
     for cg in game.cell_groups:
@@ -92,6 +95,39 @@ def play(game_id):
             curr_color = "0000ff"
         g.color_table[cell] = curr_color
     return render_template('play.html')
+
+@app.route('/submit/<int:game_id>/<move>')
+def submit(game_id, move):
+    # get game from db
+    app.logger.debug(g.db.execute('select name from sqlite_master where type = "table"').fetchall())
+    db_gm = g.db.execute('select * from games where id=?',(game_id,))
+    gdata = db_gm.fetchall()
+    if gdata == []:
+        return redirect("index")
+    app.logger.debug(gdata)
+    the_gm = game.Game(gdata[0][3],gdata[0][4],game_id)
+    the_gm.import_string(gdata[0][1])
+    # check right user
+    curr_user = session['username']
+    user_id_q = g.db.execute('select id from users where username=?',
+                             (curr_user,)).fetchall()
+    if user_id_q == []:
+        return redirect(url_for("play",game_id=game_id))
+    app.logger.debug(move)
+    uid = user_id_q[0][0]
+    if uid!=gdata[0][2]: # don't need to do more than this
+        return redirect(url_for("play",game_id=game_id))
+    # checks move valid
+    app.logger.debug(the_gm.open_cells)
+    if move not in the_gm.open_cells:
+        return redirect(url_for("play",game_id=game_id))
+    # do it?
+    the_gm.move(uid,move)
+    estr = the_gm.export_string()
+    app.logger.debug(game_id)
+    g.db.execute('update games set board=? where id=?',(estr,game_id))
+    g.db.commit()
+    return redirect(url_for("play",game_id=game_id))
 
 @app.route('/logout')
 def logout():
