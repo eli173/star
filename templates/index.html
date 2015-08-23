@@ -3,32 +3,31 @@
 <html>
   <head>
     <title>*Star</title>
+    <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
     {% if 'logged_in' not in session %}
-    <div id="login">
-      login
+    <div class="login" id="login">
       <form action="/login" method="post">
 	{% with messages = get_flashed_messages(category_filter=['login error']) %}
-	  Username:
-	  <input type="text" name="username" />
-	  Password:
-	  <input type="password" name="password" />
+	  <input type="text" placeholder="username" name="username" /><br/>
+	  <input type="password" placeholder="password" name="password" />
 	  {% for err in messages %}
 	  {{ err }}
 	  {% endfor %}
 	  {% endwith %}
 	<div class="buttons">
-	  <button type="submit" name="login">Log in</button>
-	  <button type="submit" name="register">Register</button>
+	  <button type="submit" class="button" name="login">Log in</button>
+	  <button type="submit" class="button" name="register">Register</button>
 	</div>
 	
       </form>
     </div>
     {% else %}
-    <form action="/logout">
-      <button type="submit" name="logout">Log out</button>
-    </form>
+    <div class="usernameblock">
+      {{ session['username'] }}
+      <a href="/logout">Log out</a>
+    </div>
     {% endif %}
   </body>
 </html>
