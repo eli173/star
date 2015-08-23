@@ -227,7 +227,7 @@ def login():
             g.db.execute('insert into users (username, pw_hash) values (?, ?)',
                          (request.form.get('username'),pw_hash))
             g.db.commit()
-    return redirect(url_for("index"))
+    return redirect(url_for("games"))
     
 
 @app.route('/')

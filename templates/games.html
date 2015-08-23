@@ -25,11 +25,14 @@
     </div>
     {% else %}
     No games right now!
-    {% if waiting==True %}
-    You are currently waiting to be matched with a partner
-    {% else %}
-    <a href="/newgame">New Game</a>
-    {% endif %}
     {% endfor %}
+    <br/><br/><br/>
+    <div class="waiting">
+    {% if waiting==True %}
+      You are currently waiting to be matched with a partner
+      {% else %}
+      <a href="/newgame">New Game</a>
+    </div>
+    {% endif %}
   </body>
 </html>
