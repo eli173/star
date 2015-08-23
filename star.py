@@ -42,15 +42,23 @@ def games():
         return redirect(url_for("index"))
     uname = session['username']
     uid = g.db.execute('select id from users where username=?',(uname,))
+    uid = uid.fetchall()[0][0]
     games = g.db.execute('select * from games where player1=? or player2=?',
-                            (uname,uname)).fetchall()
+                            (uid,uid)).fetchall()
     glist = []
     for game in games:
-        if game['player1'] == uname:
-            glist.append((game['player2'],game['whose_turn']==0))
+        if game[3] == uname:# 3 is p1
+            glist.append((game[4],game[2]==uid))
         else:
-            glist.append((game['player1'],game['whose_turn']!=0))
-    return render_template('games.html')
+            glist.append((game[3],game[2]!=uid))
+    app.logger.debug(glist)
+    games_waiting = g.db.execute('select * from waiting where player=?',
+                                 (uid,)).fetchall()
+    waiting = False
+    if len(games_waiting)!=0:
+        waiting = True
+    app.logger.debug(waiting)
+    return render_template('games.html',waiting=waiting,glist=glist)
     
 @app.route('/newgame')
 def newgame():
@@ -68,7 +76,7 @@ def newgame():
         if opp_id!=uid:
             g.db.execute('delete from waiting where id=?',
                          (game[0],))
-            g.db.execute('insert into games (player1, player2) values (?,?)',(uid,opp_id))
+            g.db.execute('insert into games (player1, player2, whose_turn) values (?,?,?)',(uid,opp_id,uid))
             g.db.commit()
             game_id = g.db.execute('select id from games where player1=? and player2=?',(uid,opp_id)).fetchall()
             return redirect(url_for("play",game_id=game_id[0][0]))
@@ -77,14 +85,19 @@ def newgame():
     return redirect(url_for("games")) # how to tell if on waitlist?
 
 @app.route('/play/<int:game_id>')
-def play(game_id):
+def play(game_id):# whose turn?
     g.game_id = game_id
     db_gm = g.db.execute('select * from games where id=?',(game_id,)).fetchall()
     if db_gm == []:
-        redirect(url_for("games"))
+        return redirect(url_for("games"))
     the_gm = game.Game(db_gm[0][3],db_gm[0][4],db_gm[0][0])
     the_gm.import_string(db_gm[0][1])
     app.logger.debug(db_gm[0][1])
+    waiting = False
+    whose_turn = db_gm[0][2]
+    uid = session['uid']
+    if whose_turn!=uid:
+        waiting = True
     g.color_table = {}
     cell_list = []
     for cg in game.cell_groups:
@@ -96,17 +109,15 @@ def play(game_id):
         elif cell in the_gm.p2_cells:
             curr_color = "0000ff"
         g.color_table[cell] = curr_color
-    return render_template('play.html')
+    return render_template('play.html',waiting=waiting)
 
 @app.route('/submit/<int:game_id>/<move>')
 def submit(game_id, move):
     # get game from db
-    app.logger.debug(g.db.execute('select name from sqlite_master where type = "table"').fetchall())
     db_gm = g.db.execute('select * from games where id=?',(game_id,))
     gdata = db_gm.fetchall()
     if gdata == []:
-        return redirect("index")
-    app.logger.debug(gdata)
+        return redirect(url_for("index"))
     the_gm = game.Game(gdata[0][3],gdata[0][4],game_id)
     the_gm.import_string(gdata[0][1])
     # check right user
@@ -117,7 +128,9 @@ def submit(game_id, move):
         return redirect(url_for("play",game_id=game_id))
     app.logger.debug(move)
     uid = user_id_q[0][0]
-    if uid!=gdata[0][2]: # don't need to do more than this
+    app.logger.debug(uid)
+    app.logger.debug(gdata)
+    if uid!=gdata[0][2]: # don't need to do more than this?
         return redirect(url_for("play",game_id=game_id))
     # checks move valid
     app.logger.debug(the_gm.open_cells)
@@ -135,10 +148,14 @@ def submit(game_id, move):
                      (winner,))
         g.db.execute('update users set losses=losses+1 where id=?',
                      (loser,))
+        g.db.commit()
         return redirect(url_for("games"))
     estr = the_gm.export_string()
     app.logger.debug(game_id)
+    opp_id = the_gm.p1 if the_gm.p2==uid else the_gm.p2
     g.db.execute('update games set board=? where id=?',(estr,game_id))
+    g.db.execute('update games set whose_turn=? where id=?',
+                 (opp_id,game_id))
     g.db.commit()
     return redirect(url_for("play",game_id=game_id))
 
@@ -151,8 +168,8 @@ def logout():
 def login():
     if request.method == 'POST':
         user = g.db.execute('select * from users where username=?',
-                            (request.form.get('username'),))
-        user_exists = len(user.fetchall())!=0
+                            (request.form.get('username'),)).fetchall()
+        user_exists = len(user)!=0
         if request.form.get('login')!=None:
             if request.form.get('username')==None:
                 return redirect(url_for("index"))
@@ -167,6 +184,8 @@ def login():
                 #app.logger.debug('success!')
                 session['logged_in'] = True
                 session['username'] = request.form.get('username')
+                session['uid'] = user[0][0]
+                return redirect(url_for("games"))
             else:
                 flash(u'Wrong Password','login error')
                 return redirect(url_for("index"))

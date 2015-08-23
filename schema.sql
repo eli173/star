@@ -29,7 +29,7 @@ create table games (
 create table waiting (
        id integer primary key autoincrement,
        player integer,
-       seeking integer,
+       seeking integer, -- planned feature to play someone specific
        foreign key(player) references users(id),
        foreign key(seeking) references users(id)
        );

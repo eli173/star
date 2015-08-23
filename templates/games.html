@@ -5,10 +5,12 @@
     <title>Games</title>
   </head>
   <body>
-    {% for g in glist %}
+    {{ session['username'] }}
+    <br/>
+    {% for gm in glist %}
     <div class="game">
-      Against <div class="user">{{ g[0]|e }}</div>
-      {% if g[1] %}
+      Against <div class="user">{{ gm[0]|e }}</div>
+      {% if gm[1] %}
       Your turn
       {% else %}
       Opponent's turn
@@ -16,9 +18,11 @@
     </div>
     {% else %}
     No games right now!
+    {% if waiting==True %}
+    You are currently waiting to be matched with a partner
+    {% else %}
+    <a href="/newgame">New Game</a>
+    {% endif %}
     {% endfor %}
-    <form action="/newgame">
-      <input type="submit" value="New Game">
-    </form>
   </body>
 </html>
