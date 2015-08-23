@@ -35,7 +35,16 @@ def teardown_request(exception):
     if db is not None:
         db.close()
 
+
+
+
+def get_username(uid):
+    qr = g.db.execute('select username from users where id=?',(uid,)).fetchall()
+    if qr == []:
+        return None
+    return qr[0][0]
     
+        
 @app.route('/games')
 def games():
     if 'logged_in' not in session:
@@ -48,9 +57,9 @@ def games():
     glist = []
     for game in games:
         if game[3] == uname:# 3 is p1
-            glist.append((game[4],game[2]==uid))
+            glist.append((get_username(game[4]),game[2]==uid,game[0]))
         else:
-            glist.append((game[3],game[2]!=uid))
+            glist.append((get_username(game[3]),game[2]!=uid,game[0]))
     app.logger.debug(glist)
     games_waiting = g.db.execute('select * from waiting where player=?',
                                  (uid,)).fetchall()
@@ -111,6 +120,26 @@ def play(game_id):# whose turn?
         g.color_table[cell] = curr_color
     return render_template('play.html',waiting=waiting)
 
+@app.route('/forefeit/<int:game_id>')
+def forefeit(game_id):
+    g_q = g.db.execute('select (player1,player2) from games where id=?',
+                       (game_id,)).fetchall()
+    p1 = g_q[0][2]
+    p2 = g_q[0][3]
+    winner = None
+    loser = None
+    if p1==session['uid']:
+        winner = p2
+        loser = p1
+    else:
+        winner = p1
+        loser = p2
+    g.db.execute("delete from games where id=?",(game_id,))
+    g.db.execute("update users set wins=wins+1 where id=?",(winner,))
+    g.db.execute("update users set losses=losses+1 where id=?",(loser,))
+    g.db.commit()
+    return redirect(url_for("games"))
+        
 @app.route('/submit/<int:game_id>/<move>')
 def submit(game_id, move):
     # get game from db

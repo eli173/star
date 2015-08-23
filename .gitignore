@@ -7,3 +7,4 @@ __pycache__/
 /templates/board.svg~
 /templates/play.html~
 db.db
+/static/style.css~

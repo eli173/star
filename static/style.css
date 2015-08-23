@@ -1,0 +1,43 @@
+
+
+.game {
+}
+
+.game a{
+    text-decoration: none;
+    padding: 1px 10px 1px 10px;
+    background-color: rgba(224,192,0,0.5);
+    border-radius: 10px;
+    border: 1px outset rgba(0,0,0,1);
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    width: 30%;
+
+}
+
+
+.username_block {
+    text-align: right;
+}
+
+.username_block a {
+    text-decoration: none;
+    padding: 1px 5px 1px 5px;
+    border-radius: 5px;
+    background-color: rgba(128,128,128,1);
+    color: rgba(255,255,255,1);
+}
+
+#svg {
+    text-align: center;
+}
+svg {
+    width: 65%;
+    height: auto;
+}
+
+#forefeit {
+    text-align:center;
+    
+}

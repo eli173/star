@@ -3,18 +3,25 @@
 <html>
   <head>
     <title>Games</title>
+    <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
-    {{ session['username'] }}
+    <div class="username_block">
+      {{ session['username'] }}
+      <a href="/logout">Log out</a>
+    </div>
     <br/>
     {% for gm in glist %}
     <div class="game">
-      Against <div class="user">{{ gm[0]|e }}</div>
-      {% if gm[1] %}
-      Your turn
-      {% else %}
-      Opponent's turn
-      {% endif %}
+      <a href="/play/{{ gm[2] }}">
+	{{ gm[0]|e }}
+	<br/>
+	{% if gm[1] %}
+	Opponent's turn
+	{% else %}
+	Your turn
+	{% endif %}
+      </a>
     </div>
     {% else %}
     No games right now!
