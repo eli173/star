@@ -1,0 +1,14 @@
+
+
+Implementation of *Star (http://ea.ea.home.mindspring.com/*Star.html) as a web app, in a play-by-mail style
+
+Uses Flask as the web framework, SQLite3 for the database, and HTML/SVG for the rest (no javascript!)
+
+If you plan on using this, you should almost definitely change the app.secret_key to something that's not in a public git repository
+
+Includes sample database in db.db, with users asdf and qwer with passwords fdsa and rewq, respectively, for you to play with
+You can set up an empty database by removing that file and running ```sqlite3 db_name < schema.sql'''
+
+
+The code included could use a thorough cleaning; more encapsulated database references, use classes better etc.
+Taking care of this is probably what's next unless something is broken or some feature is requested
